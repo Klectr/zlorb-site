@@ -6,10 +6,8 @@ Served at [zlorb.klectr.dev](https://zlorb.klectr.dev) from the Klectr VPS (`/va
 
 ## Editing
 
-It is one self-contained file: `index.html`. Edit it, commit, and copy it to the VPS:
+Two files, no build step: `index.html` and `mascot.webp`. Edit, commit, and copy both to the VPS:
 
 ```
-scp index.html root@<vps>:/var/www/zlorb/index.html
+scp index.html mascot.webp root@<vps>:/var/www/zlorb/
 ```
-
-No build step, no dependencies.
