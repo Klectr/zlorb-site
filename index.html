@@ -157,6 +157,9 @@
     border-radius:100px;padding:3px 10px;margin-bottom:12px;text-transform:uppercase;
   }
 
+  .mascot-figure{margin-top:40px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-overlay)}
+  .mascot-figure img{width:100%;height:auto;display:block}
+
   .split{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-top:40px}
   .codecard{
     background:#0b0e14;border-radius:12px;padding:20px 24px;color:#c9d4e8;
@@ -281,6 +284,9 @@
     <div class="kicker reveal">How it works</div>
     <h2 class="sec-title reveal">From laptop to live in one push</h2>
     <p class="sec-sub reveal">You keep working the way you already do — commit, push. Zlorb handles everything that used to happen after.</p>
+    <figure class="mascot-figure reveal">
+      <img src="mascot.webp" alt="The Klectr alien running the deploy pipeline: commit, build, test, deploy" width="1536" height="1024" loading="lazy">
+    </figure>
     <div class="steps">
       <div class="card step reveal"><div class="num">01</div><h3>Install once</h3><p>Install the two binaries with Cargo and run <span class="mono">zlorb-ctl setup</span>. It writes the config and registers the daemon as a systemd user service.</p></div>
       <div class="card step reveal"><div class="num">02</div><h3>Add a repo</h3><p>Stand inside any git repo and run <span class="mono">zlorb-ctl add</span>. The running daemon picks it up immediately — no restart, no reload command.</p></div>
