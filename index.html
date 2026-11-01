@@ -82,7 +82,7 @@
   .btn-ghost-dark{background:transparent;color:var(--ink);border-color:var(--ink)}
   .btn-ghost-dark:hover{background:rgba(0,0,0,.04)}
 
-  .hero-inner{text-align:center;padding:88px 0 0}
+  .hero-inner{text-align:center;padding:88px 0 72px}
   .eyebrow{
     font-family:"Fragment Mono",monospace;font-size:13px;letter-spacing:4px;
     color:var(--hero-sub);text-transform:uppercase;
@@ -102,11 +102,10 @@
 
   /* terminal window */
   .term{
-    max-width:880px;margin:64px auto 0;text-align:left;
+    max-width:880px;margin:40px auto 0;text-align:left;
     background:#0b0e14;border:1px solid rgba(255,255,255,.14);
-    border-radius:16px 16px 0 0;border-bottom:none;
+    border-radius:16px;
     box-shadow:var(--shadow-overlay);
-    transform:translateY(8px);
   }
   .term-bar{
     display:flex;align-items:center;gap:8px;
@@ -157,8 +156,8 @@
     border-radius:100px;padding:3px 10px;margin-bottom:12px;text-transform:uppercase;
   }
 
-  .mascot-figure{margin-top:40px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-overlay)}
-  .mascot-figure img{width:100%;height:auto;display:block}
+  .hero-mascot{max-width:880px;margin:56px auto 0;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-overlay)}
+  .hero-mascot img{width:100%;height:auto;display:block}
 
   .split{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-top:40px}
   .codecard{
@@ -252,18 +251,9 @@
       </div>
       <p class="hero-note enter d4">Installs with Cargo · runs as a systemd user service · <span class="mono">free forever</span></p>
 
-      <div class="term enter d5" role="img" aria-label="Zlorb daemon log showing a deploy cycle">
-        <div class="term-bar">
-          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-          <span class="term-title">zlorb-service — daemon log</span>
-        </div>
-        <div class="term-body"><span class="dim">[12:00:01]</span> watching <span class="hl">my-app</span> · origin/main · every 60s
-<span class="dim">[12:00:04]</span> my-app: remote advanced <span class="hl">9f31c2 → b47aa0</span>
-<span class="dim">[12:00:04]</span> my-app: fast-forwarded · working tree updated (6 files)
-<span class="dim">[12:00:06]</span> my-app: bun install <span class="ok">ok</span> · bun run build <span class="ok">ok</span>
-<span class="dim">[12:00:06]</span> my-app: restart command <span class="ok">ok</span> — now serving <span class="hl">b47aa0</span>
-<span class="dim">[12:01:04]</span> my-app: up to date <span class="dim">· other repos quiet</span></div>
-      </div>
+      <figure class="hero-mascot enter d5">
+        <img src="mascot.webp" alt="The Klectr alien running the deploy pipeline: commit, build, test, deploy" width="1536" height="1024" fetchpriority="high">
+      </figure>
     </div>
   </div>
 </header>
@@ -284,9 +274,18 @@
     <div class="kicker reveal">How it works</div>
     <h2 class="sec-title reveal">From laptop to live in one push</h2>
     <p class="sec-sub reveal">You keep working the way you already do — commit, push. Zlorb handles everything that used to happen after.</p>
-    <figure class="mascot-figure reveal">
-      <img src="mascot.webp" alt="The Klectr alien running the deploy pipeline: commit, build, test, deploy" width="1536" height="1024" loading="lazy">
-    </figure>
+    <div class="term reveal" role="img" aria-label="Zlorb daemon log showing a deploy cycle">
+      <div class="term-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="term-title">zlorb-service — daemon log</span>
+      </div>
+      <div class="term-body"><span class="dim">[12:00:01]</span> watching <span class="hl">my-app</span> · origin/main · every 60s
+<span class="dim">[12:00:04]</span> my-app: remote advanced <span class="hl">9f31c2 → b47aa0</span>
+<span class="dim">[12:00:04]</span> my-app: fast-forwarded · working tree updated (6 files)
+<span class="dim">[12:00:06]</span> my-app: bun install <span class="ok">ok</span> · bun run build <span class="ok">ok</span>
+<span class="dim">[12:00:06]</span> my-app: restart command <span class="ok">ok</span> — now serving <span class="hl">b47aa0</span>
+<span class="dim">[12:01:04]</span> my-app: up to date <span class="dim">· other repos quiet</span></div>
+    </div>
     <div class="steps">
       <div class="card step reveal"><div class="num">01</div><h3>Install once</h3><p>Install the two binaries with Cargo and run <span class="mono">zlorb-ctl setup</span>. It writes the config and registers the daemon as a systemd user service.</p></div>
       <div class="card step reveal"><div class="num">02</div><h3>Add a repo</h3><p>Stand inside any git repo and run <span class="mono">zlorb-ctl add</span>. The running daemon picks it up immediately — no restart, no reload command.</p></div>
