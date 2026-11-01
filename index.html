@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zlorb — git push is the deploy</title>
+<meta name="description" content="Zlorb is a tiny Linux daemon that watches your git repos, fast-forwards them, builds, and restarts your app. No CI YAML. No SSH. No deploy day.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fragment+Mono&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1e232c;
+    --muted:#8691a1;
+    --faint:#adb2b8;
+    --surface:#f3f4f6;
+    --line:rgba(0,0,0,.10);
+    --accent:#4176e6;
+    --accent-deep:#3157b8;
+    --navy-0:#060f22;
+    --navy-1:#0a1f42;
+    --navy-2:#123a75;
+    --hero-sub:#a9bedd;
+    --radius:9px;
+    --shadow-raised:0 1px 3px rgba(0,0,0,.08);
+    --shadow-overlay:0 0 1px 0 rgba(0,0,0,.2),0 0 4px 0 rgba(0,0,0,.02),0 24px 72px rgba(0,0,0,.35);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"DM Sans",system-ui,sans-serif;
+    color:var(--ink);
+    background:#ffffff;
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:"Montserrat",sans-serif;line-height:1.2}
+  code,pre,.mono{font-family:"Fragment Mono",monospace}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- hero ---------- */
+  .hero{
+    background:
+      radial-gradient(900px 480px at 78% -10%, rgba(65,118,230,.45), rgba(65,118,230,0) 60%),
+      radial-gradient(700px 500px at 8% 110%, rgba(49,87,184,.35), rgba(49,87,184,0) 60%),
+      linear-gradient(178deg, var(--navy-2) 0%, var(--navy-1) 46%, var(--navy-0) 100%);
+    color:#fff;
+    overflow:hidden;
+  }
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:24px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;color:#fff}
+  .brand .mark{
+    width:32px;height:32px;border-radius:8px;background:#fff;color:var(--navy-1);
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Montserrat",sans-serif;font-weight:800;font-size:18px;
+  }
+  .brand .name{font-family:"Montserrat",sans-serif;font-weight:700;font-size:22px;letter-spacing:.2px}
+  .brand .badge{
+    font-family:"Fragment Mono",monospace;font-size:11px;letter-spacing:1px;
+    border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:2px 6px;color:#fff;
+  }
+  .nav-links{display:flex;gap:12px;align-items:center}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:"DM Sans",sans-serif;font-weight:500;font-size:15px;
+    padding:8px 16px;border-radius:var(--radius);border:1px solid transparent;
+    transition:opacity .2s ease, background .2s ease, transform .2s ease;
+    cursor:pointer;
+  }
+  .btn:hover{opacity:.92}
+  .btn-white{background:#fff;color:var(--navy-1)}
+  .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
+  .btn-ghost:hover{background:rgba(255,255,255,.08)}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-accent:hover{background:var(--accent-deep)}
+  .btn-pill{border-radius:100px;padding:14px 32px;font-size:16px}
+  .btn-ghost-dark{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .btn-ghost-dark:hover{background:rgba(0,0,0,.04)}
+
+  .hero-inner{text-align:center;padding:88px 0 0}
+  .eyebrow{
+    font-family:"Fragment Mono",monospace;font-size:13px;letter-spacing:4px;
+    color:var(--hero-sub);text-transform:uppercase;
+  }
+  .hero h1{
+    font-size:60px;font-weight:700;letter-spacing:-.5px;
+    margin:24px auto 8px;max-width:820px;
+  }
+  .hero h1 .line2{display:block;margin-top:6px}
+  .hero .sub{
+    color:var(--hero-sub);font-size:17px;line-height:1.6;
+    max-width:640px;margin:24px auto 0;
+  }
+  .hero-ctas{display:flex;gap:14px;justify-content:center;margin-top:36px;flex-wrap:wrap}
+  .hero-note{margin-top:16px;color:var(--hero-sub);font-size:13px}
+  .hero-note .mono{color:#dbe6fa}
+
+  /* terminal window */
+  .term{
+    max-width:880px;margin:64px auto 0;text-align:left;
+    background:#0b0e14;border:1px solid rgba(255,255,255,.14);
+    border-radius:16px 16px 0 0;border-bottom:none;
+    box-shadow:var(--shadow-overlay);
+    transform:translateY(8px);
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+  .term-title{margin-left:10px;color:#8b93a3;font-size:13px;font-family:"Fragment Mono",monospace}
+  .term-body{padding:20px 24px 32px;font-family:"Fragment Mono",monospace;font-size:13.5px;line-height:1.9;color:#c9d4e8;overflow-x:auto}
+  .term-body .dim{color:#69758c}
+  .term-body .ok{color:#5fd68a}
+  .term-body .hl{color:#8fb4ff}
+  .term-body .warn{color:#f2b25c}
+
+  /* ---------- light sections ---------- */
+  section{padding:88px 0}
+  .kicker{
+    font-family:"Fragment Mono",monospace;font-size:12px;letter-spacing:3px;
+    text-transform:uppercase;color:var(--accent);margin-bottom:14px;
+  }
+  .sec-title{font-size:38px;font-weight:700;letter-spacing:-.3px;max-width:640px}
+  .sec-sub{color:var(--muted);font-size:16px;margin-top:14px;max-width:620px;line-height:1.6}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+  .stat{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-raised)}
+  .stat .label{color:var(--faint);font-size:12px;text-transform:uppercase;letter-spacing:1.5px}
+  .stat .value{font-family:"Montserrat",sans-serif;font-size:30px;font-weight:700;margin-top:8px}
+  .stat .hint{color:var(--muted);margin-top:4px}
+
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;box-shadow:var(--shadow-raised);
+  }
+  .step .num{
+    font-family:"Fragment Mono",monospace;color:var(--accent);font-size:13px;letter-spacing:2px;
+  }
+  .step h3{font-size:18px;margin:10px 0 8px}
+  .step p{color:var(--muted);line-height:1.6}
+  .step .mono{color:var(--ink);font-size:13px}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+  .feature h3{font-size:17px;margin-bottom:8px}
+  .feature p{color:var(--muted);line-height:1.6}
+  .feature .tag{
+    display:inline-block;font-family:"Fragment Mono",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--accent-deep);background:rgba(65,118,230,.10);
+    border-radius:100px;padding:3px 10px;margin-bottom:12px;text-transform:uppercase;
+  }
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-top:40px}
+  .codecard{
+    background:#0b0e14;border-radius:12px;padding:20px 24px;color:#c9d4e8;
+    font-family:"Fragment Mono",monospace;font-size:13.5px;line-height:1.9;overflow-x:auto;
+    box-shadow:var(--shadow-raised);
+  }
+  .codecard .dim{color:#69758c}
+  .codecard .hl{color:#8fb4ff}
+  .codecard .str{color:#5fd68a}
+  .managers{display:flex;flex-direction:column;gap:16px}
+  .manager{display:flex;gap:16px;align-items:flex-start}
+  .manager .chip{
+    font-family:"Fragment Mono",monospace;font-size:13px;font-weight:700;
+    border-radius:8px;padding:8px 12px;min-width:76px;text-align:center;
+  }
+  .chip.bun{background:#fdf3e3;color:#9a6a12}
+  .chip.rust{background:#fbe9e4;color:#a03d21}
+  .chip.next{background:var(--surface);color:var(--muted);border:1px dashed var(--faint)}
+  .manager h3{font-size:16px;margin-bottom:4px}
+  .manager p{color:var(--muted);line-height:1.6}
+
+  .cta-band{
+    background:linear-gradient(178deg, var(--navy-2), var(--navy-1));
+    border-radius:16px;color:#fff;text-align:center;padding:56px 32px;
+  }
+  .cta-band h2{font-size:34px}
+  .cta-band p{color:var(--hero-sub);margin:14px auto 28px;max-width:520px;font-size:16px;line-height:1.6}
+  .cta-band .mono{color:#dbe6fa;font-size:13px}
+
+  footer{border-top:1px solid var(--line);padding:36px 0 44px;color:var(--muted)}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .foot .brand .name{color:var(--ink);font-size:18px}
+  .foot .brand .mark{background:var(--navy-1);color:#fff}
+  .foot-links{display:flex;gap:24px}
+  .foot-links a{color:var(--muted)}
+  .foot-links a:hover{color:var(--ink)}
+
+  /* motion */
+  @keyframes hero-enter{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+  .enter{opacity:0;animation:hero-enter .7s ease-out forwards}
+  .enter.d1{animation-delay:.05s}.enter.d2{animation-delay:.15s}.enter.d3{animation-delay:.28s}
+  .enter.d4{animation-delay:.42s}.enter.d5{animation-delay:.58s}
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease-out, transform .6s ease-out}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){
+    .enter{animation:none;opacity:1}
+    .reveal{transition:none;opacity:1;transform:none}
+    html{scroll-behavior:auto}
+  }
+
+  @media (max-width:900px){
+    .stats,.steps{grid-template-columns:repeat(2,1fr)}
+    .features{grid-template-columns:1fr 1fr}
+    .split{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .hero h1{font-size:40px}
+    .sec-title{font-size:30px}
+    .features,.stats,.steps{grid-template-columns:1fr}
+    .nav-links .hide-sm{display:none}
+    section{padding:64px 0}
+    .term-body{font-size:12px;padding:16px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="#">
+        <span class="mark">z</span>
+        <span class="name">zlorb</span>
+        <span class="badge">OSS</span>
+      </a>
+      <div class="nav-links">
+        <a class="btn btn-ghost hide-sm" href="#how">How it works</a>
+        <a class="btn btn-ghost hide-sm" href="#features">Features</a>
+        <a class="btn btn-white" href="https://github.com/Klectr/zlorb">GitHub</a>
+      </div>
+    </nav>
+
+    <div class="hero-inner">
+      <div class="eyebrow enter d1">✦ Open source · MIT · Linux</div>
+      <h1 class="enter d2">Git push is<span class="line2">the deploy.</span></h1>
+      <p class="sub enter d3">Zlorb is a tiny daemon that lives on your server, watches your git repos, fast-forwards them, builds, and restarts your app. No CI YAML. No SSH. No deploy day.</p>
+      <div class="hero-ctas enter d4">
+        <a class="btn btn-white btn-pill" href="#install">Get started</a>
+        <a class="btn btn-ghost btn-pill" href="https://github.com/Klectr/zlorb">View on GitHub</a>
+      </div>
+      <p class="hero-note enter d4">Installs with Cargo · runs as a systemd user service · <span class="mono">free forever</span></p>
+
+      <div class="term enter d5" role="img" aria-label="Zlorb daemon log showing a deploy cycle">
+        <div class="term-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="term-title">zlorb-service — daemon log</span>
+        </div>
+        <div class="term-body"><span class="dim">[12:00:01]</span> watching <span class="hl">my-app</span> · origin/main · every 60s
+<span class="dim">[12:00:04]</span> my-app: remote advanced <span class="hl">9f31c2 → b47aa0</span>
+<span class="dim">[12:00:04]</span> my-app: fast-forwarded · working tree updated (6 files)
+<span class="dim">[12:00:06]</span> my-app: bun install <span class="ok">ok</span> · bun run build <span class="ok">ok</span>
+<span class="dim">[12:00:06]</span> my-app: restart command <span class="ok">ok</span> — now serving <span class="hl">b47aa0</span>
+<span class="dim">[12:01:04]</span> my-app: up to date <span class="dim">· other repos quiet</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section style="padding-top:56px">
+  <div class="wrap">
+    <div class="stats reveal">
+      <div class="stat"><div class="label">Setup commands</div><div class="value">3</div><div class="hint">install, setup, add — done</div></div>
+      <div class="stat"><div class="label">YAML files</div><div class="value">0</div><div class="hint">one small TOML config</div></div>
+      <div class="stat"><div class="label">Repos per daemon</div><div class="value">Any</div><div class="hint">add as many as you run</div></div>
+      <div class="stat"><div class="label">Price</div><div class="value">$0</div><div class="hint">MIT licensed, self-hosted</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="padding-top:24px">
+  <div class="wrap">
+    <div class="kicker reveal">How it works</div>
+    <h2 class="sec-title reveal">From laptop to live in one push</h2>
+    <p class="sec-sub reveal">You keep working the way you already do — commit, push. Zlorb handles everything that used to happen after.</p>
+    <div class="steps">
+      <div class="card step reveal"><div class="num">01</div><h3>Install once</h3><p>Install the two binaries with Cargo and run <span class="mono">zlorb-ctl setup</span>. It writes the config and registers the daemon as a systemd user service.</p></div>
+      <div class="card step reveal"><div class="num">02</div><h3>Add a repo</h3><p>Stand inside any git repo and run <span class="mono">zlorb-ctl add</span>. The running daemon picks it up immediately — no restart, no reload command.</p></div>
+      <div class="card step reveal"><div class="num">03</div><h3>Say how it builds</h3><p>One config entry per repo: the branch to follow, a build strategy — <span class="mono">bun</span> or <span class="mono">rust</span> — and an optional restart command. Edits apply live.</p></div>
+      <div class="card step reveal"><div class="num">04</div><h3>Push</h3><p>On its next cycle Zlorb sees the new commit, fast-forwards, builds, and restarts your app. You find out it worked because the site changed.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="padding-top:24px">
+  <div class="wrap">
+    <div class="kicker reveal">Features</div>
+    <h2 class="sec-title reveal">Small surface, sharp edges handled</h2>
+    <p class="sec-sub reveal">A deploy tool earns trust in the failure cases. Zlorb's defaults are built around not losing your work and never pretending a deploy happened when it didn't.</p>
+    <div class="features">
+      <div class="card feature reveal"><span class="tag">Live</span><h3>Hot pickup &amp; config reload</h3><p>Add repos and edit config while the daemon runs. Watch list and settings changes take effect on the next cycle — restarting the watcher to watch something new is not a thing here.</p></div>
+      <div class="card feature reveal"><span class="tag">Git</span><h3>Real fast-forwards</h3><p>When the remote advances, Zlorb fast-forwards the branch <em>and</em> updates the working tree — scoped to the paths that actually changed, so unrelated work in the repo is left alone.</p></div>
+      <div class="card feature reveal"><span class="tag">Safety</span><h3>Overwrite guard</h3><p>If local changes or untracked files stand in the way of an update, Zlorb refuses and names the files. Your uncommitted work is never silently clobbered by a deploy.</p></div>
+      <div class="card feature reveal"><span class="tag">Recovery</span><h3>Verified rollback</h3><p>A checkout that fails mid-update rolls the branch and the tree back — and Zlorb verifies the rollback landed before it trusts it. Partial states don't get left behind.</p></div>
+      <div class="card feature reveal"><span class="tag">Builds</span><h3>Failed builds retry</h3><p>A build that fails is recorded against that commit and retried on later cycles until it succeeds — then the record clears. A red build is a pending deploy, not a lost one.</p></div>
+      <div class="card feature reveal"><span class="tag">Runtime</span><h3>Restart command</h3><p>After a successful update and build, Zlorb runs your restart command in the repo directory. On cycles where nothing changed, it stays idle. Your start script stays yours.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:24px">
+  <div class="wrap">
+    <div class="kicker reveal">Build managers</div>
+    <h2 class="sec-title reveal">One interface, managers on demand</h2>
+    <p class="sec-sub reveal">Builds run through small modules behind one shared interface, selected by the strategy in each repo's config. New stacks get a new module — modeled on the existing ones, gated by a shared conformance test suite — instead of another flag on a monolith.</p>
+    <div class="split">
+      <div class="managers reveal">
+        <div class="manager"><span class="chip bun">bun</span><div><h3>Bun manager</h3><p>Runs install and your build command, judging both by exit status — a failed install fails the deploy, loudly.</p></div></div>
+        <div class="manager"><span class="chip rust">rust</span><div><h3>Rust manager</h3><p>Runs <span class="mono">cargo build</span> for the repo and surfaces the compiler's own output when it fails.</p></div></div>
+        <div class="manager"><span class="chip next">next</span><div><h3>Your stack here</h3><p>Need npm, Go, or something else? The manager template and contract docs walk through adding one — the daemon's update loop never changes.</p></div></div>
+      </div>
+      <div class="codecard reveal"><span class="dim"># per-repo config</span>
+name = <span class="str">"my-app"</span>
+path = <span class="str">"/srv/my-app"</span>
+remote = <span class="str">"origin"</span>
+branch = <span class="str">"main"</span>
+build_strategy = <span class="str">"bun"</span>
+restart_command = <span class="str">"./deploy.sh"</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="install" style="padding-top:24px">
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <h2>Deploy your next push yourself — by not deploying it</h2>
+      <p>Install Zlorb on the server, add your repos, and let git push do the rest.</p>
+      <div class="codecard" style="text-align:left;max-width:640px;margin:0 auto 28px;background:rgba(0,0,0,.28);box-shadow:none">cargo install --git https://github.com/Klectr/zlorb zlorb-ctl
+cargo install --git https://github.com/Klectr/zlorb zlorb-service
+zlorb-ctl setup
+<span class="dim"># then, inside any repo you want deployed:</span>
+zlorb-ctl add</div>
+      <a class="btn btn-white btn-pill" href="https://github.com/Klectr/zlorb">Get Zlorb on GitHub</a>
+      <p class="mono" style="margin-top:20px">Linux · Rust · MIT license</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="#">
+      <span class="mark">z</span>
+      <span class="name">zlorb</span>
+    </a>
+    <div class="foot-links">
+      <a href="https://github.com/Klectr/zlorb">GitHub</a>
+      <a href="https://github.com/Klectr/zlorb/blob/dev/docs/build-managers.md">Build manager docs</a>
+      <a href="https://github.com/Klectr/zlorb/blob/dev/CONTRIBUTING.md">Contributing</a>
+    </div>
+    <div>© 2026 Triston Armstrong · A Klectr project</div>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+</body>
+</html>
